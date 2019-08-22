@@ -62,12 +62,12 @@ Follow these steps to create a service instance and obtain its credentials:
     3. Click "Create".
 3. Copy your service credentials:
     1. Click "Service Credentials" on the left side of the page.
-    2. Copy the service's `username` and `password` (or `api_key` for Alchemy).
+    2. Copy the service's `api_key`.
 
 You will need to provide these service credentials in your application. For example:
 
 ```javascript
-TextToSpeech.initialize("your-username-here", "your-password-here")
+TextToSpeech.initialize("api_key")
 ```
 
 Note that service credentials are different from your IBM Cloud username and password.
