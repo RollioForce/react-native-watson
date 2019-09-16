@@ -50,7 +50,11 @@ class RNSpeechToText: RCTEventEmitter {
       errorCallback([error])
     }
 
-    speechToText?.recognizeMicrophone(settings: settings, callback: callback)
+    speechToText?.recognizeMicrophone(
+      settings: settings,
+      configureSession: false,
+      callback: callback
+    )
   }
 
   @objc func stopStreaming() {
