@@ -27,12 +27,19 @@ class RNSpeechToText: RCTEventEmitter {
   }
 
   @objc func initialize(_ apiKey: String) -> Void {
+    do {
+      let audioSession = AVAudioSession.sharedInstance();
+
+      try audioSession.setCategory(AVAudioSession.Category.playAndRecord, mode: .default, options: [.defaultToSpeaker, .mixWithOthers, .allowBluetooth])
+    } catch {
+      print(error)
+    }
+
     speechToText = SpeechToText(apiKey: apiKey)
     speechToText?.defaultHeaders = ["X-Watson-Learning-Opt-Out": "true"]
   }
 
   @objc func startStreaming(_ errorCallback: @escaping RCTResponseSenderBlock) {
-
     var settings = RecognitionSettings(contentType: "audio/ogg;codecs=opus")
     settings.interimResults = true
     settings.smartFormatting = true
@@ -50,7 +57,11 @@ class RNSpeechToText: RCTEventEmitter {
       errorCallback([error])
     }
 
-    speechToText?.recognizeMicrophone(settings: settings, callback: callback)
+    speechToText?.recognizeMicrophone(
+      settings: settings,
+      configureSession: false,
+      callback: callback
+    )
   }
 
   @objc func stopStreaming() {
