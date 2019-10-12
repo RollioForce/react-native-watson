@@ -40,7 +40,7 @@ class RNSpeechToText: RCTEventEmitter {
   }
 
   @objc func startStreaming(_ errorCallback: @escaping RCTResponseSenderBlock) {
-    var settings = RecognitionSettings(contentType: "audio/ogg;codecs=opus")
+    var settings = RecognitionSettings(contentType: "audio/ogg")
     settings.interimResults = true
     settings.smartFormatting = true
     var callback = RecognizeCallback()
