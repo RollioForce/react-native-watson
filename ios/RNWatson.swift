@@ -39,7 +39,7 @@ class RNSpeechToText: RCTEventEmitter {
     speechToText?.defaultHeaders = ["X-Watson-Learning-Opt-Out": "true"]
   }
 
-  @objc func startStreaming(_ errorCallback: @escaping RCTResponseSenderBlock) {
+  @objc func startStreaming(_ languageCustomizationID: String?, errorCallback: @escaping RCTResponseSenderBlock) {
     var settings = RecognitionSettings(contentType: "audio/ogg")
     settings.interimResults = true
     settings.smartFormatting = true
@@ -59,6 +59,7 @@ class RNSpeechToText: RCTEventEmitter {
 
     speechToText?.recognizeMicrophone(
       settings: settings,
+      languageCustomizationID: languageCustomizationID,
       configureSession: false,
       callback: callback
     )

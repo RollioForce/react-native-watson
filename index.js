@@ -10,13 +10,13 @@ module.exports = {
       RNSpeechToText.initialize(apiKey);
     },
 
-    startStreaming(callback) {
+    startStreaming({ callback, languageCustomizationId }) {
       this.subscription = this.speechToTextEmitter.addListener(
         "StreamingText",
         text => callback(null, text)
       );
 
-      RNSpeechToText.startStreaming(callback);
+      RNSpeechToText.startStreaming(languageCustomizationId, callback);
     },
 
     stopStreaming() {
