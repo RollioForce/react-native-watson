@@ -11,6 +11,11 @@
 
 @interface RCT_EXTERN_MODULE(RNSpeechToText, RCTEventEmitter)
 
++ (BOOL)requiresMainQueueSetup
+{
+  return NO;
+}
+
 RCT_EXTERN_METHOD(initialize:(NSString *)apiKey)
 
 RCT_EXTERN_METHOD(startStreaming: (RCTResponseSenderBlock *)errorCallback)
