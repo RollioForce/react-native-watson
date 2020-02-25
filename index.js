@@ -11,17 +11,31 @@ module.exports = {
     },
 
     startStreaming({ callback, languageCustomizationId }) {
+      this.speechToTextEmitter.removeAllListeners("StreamingText")
+
       this.subscription = this.speechToTextEmitter.addListener(
         "StreamingText",
-        text => callback(null, text)
+        ({ text, isFinal, isListening }) => {
+          callback(null, text, isFinal)
+
+          if (this.subscription && !isListening && isFinal) {
+            this.subscription.remove()
+          }
+        }
       );
 
-      RNSpeechToText.startStreaming(languageCustomizationId, callback);
+      const onError = (error) => {
+        callback(error)
+
+        if (this.subscription) {
+          this.speechToTextEmitter.removeAllListeners("StreamingText")
+        }
+      }
+
+      RNSpeechToText.startStreaming(languageCustomizationId, onError);
     },
 
     stopStreaming() {
-      this.subscription.remove();
-
       RNSpeechToText.stopStreaming();
     }
   }
