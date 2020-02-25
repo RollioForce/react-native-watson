@@ -1,20 +1,24 @@
 {
-  "name": "react-native-watson",
-  "version": "1.5.3",
+  "name": "@rollioforce/react-native-watson",
+  "version": "2.0.0",
   "description": "React Native module for IBM Watson services",
+  "license": "ISC",
   "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RollioForce/react-native-watson.git"
+  },
+  "bugs": {
+    "url": "https://github.com/RollioForce/react-native-watson/issues"
+  },
+  "homepage": "https://github.com/RollioForce/react-native-watson#readme",
   "dependencies": {},
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "peerDependencies": {
-    "react-native": "^0.41.2",
-    "react-native-windows": "0.41.0-rc.1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/pwcremin/react-native-watson.git"
+    "react-native": "^0.59"
   },
   "keywords": [
     "react-native",
@@ -28,10 +32,9 @@
     "speech-to-text",
     "tone-analyzer"
   ],
-  "author": "Patrick Cremin",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/pwcremin/react-native-watson/issues"
-  },
-  "homepage": "https://github.com/pwcremin/react-native-watson#readme"
+  "contributors": [
+    "Patrick Cremin",
+    "Gabriel Perales",
+    "Brad Adams"
+  ]
 }
