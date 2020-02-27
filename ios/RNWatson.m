@@ -18,7 +18,7 @@
 
 RCT_EXTERN_METHOD(initialize: (NSString *)apiKey)
 
-RCT_EXTERN_METHOD(startStreaming: (NSString *)languageCustomizationID errorCallback:(RCTResponseSenderBlock *)errorCallback)
+RCT_EXTERN_METHOD(startStreaming: (NSDictionary *)config errorCallback:(RCTResponseSenderBlock *)errorCallback)
 
 RCT_EXTERN_METHOD(stopStreaming)
 
