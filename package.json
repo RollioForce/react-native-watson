@@ -1,6 +1,6 @@
 {
   "name": "@rollioforce/react-native-watson",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "React Native module for IBM Watson services",
   "license": "ISC",
   "main": "index.js",
