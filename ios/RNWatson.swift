@@ -17,6 +17,7 @@ class RNSpeechToText: RCTEventEmitter {
   var audioPlayer = AVAudioPlayer()
   var callback: RCTResponseSenderBlock?
   var hasListeners = false
+  var isListening = false;
 
   static let sharedInstance = RNSpeechToText()
 
@@ -40,21 +41,32 @@ class RNSpeechToText: RCTEventEmitter {
   }
 
   @objc func startStreaming(_ languageCustomizationID: String?, errorCallback: @escaping RCTResponseSenderBlock) {
+    self.isListening = true
+    self.accumulator = SpeechRecognitionResultsAccumulator()
+    
     var settings = RecognitionSettings(contentType: "audio/ogg")
     settings.interimResults = true
     settings.smartFormatting = true
+
     var callback = RecognizeCallback()
 
-    callback.onResults = { results  in
+    callback.onResults = { payload in
       if(self.hasListeners)
       {
-        self.accumulator.add(results: results)
-        self.sendEvent(withName: "StreamingText", body: self.accumulator.bestTranscript)
+        self.accumulator.add(results: payload)
+        let isFinal = payload.results?.last?.finalResults ?? true
+
+        self.sendEvent(withName: "StreamingText", body: [
+          "isListening": self.isListening,
+          "isLoading": !isFinal,
+          "text": self.accumulator.bestTranscript
+        ])
       }
     }
 
     callback.onError = { (error: Error) in
       errorCallback([error])
+      self.isListening = false
     }
 
     speechToText?.recognizeMicrophone(
@@ -66,7 +78,7 @@ class RNSpeechToText: RCTEventEmitter {
   }
 
   @objc func stopStreaming() {
-    self.accumulator = SpeechRecognitionResultsAccumulator()
+    self.isListening = false
     speechToText?.stopRecognizeMicrophone()
   }
 
