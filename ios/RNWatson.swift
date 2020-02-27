@@ -57,9 +57,9 @@ class RNSpeechToText: RCTEventEmitter {
         let isFinal = payload.results?.last?.finalResults ?? true
 
         self.sendEvent(withName: "StreamingText", body: [
-          "text": self.accumulator.bestTranscript,
-          "isFinal": isFinal,
-          "isListening": self.isListening
+          "isListening": self.isListening,
+          "isLoading": !isFinal,
+          "text": self.accumulator.bestTranscript
         ])
       }
     }

@@ -15,10 +15,10 @@ module.exports = {
 
       this.subscription = this.speechToTextEmitter.addListener(
         "StreamingText",
-        ({ text, isFinal, isListening }) => {
-          callback(null, text, isFinal)
+        ({ isListening, isLoading, text }) => {
+          callback(null, text, isLoading)
 
-          if (this.subscription && !isListening && isFinal) {
+          if (this.subscription && !isListening && !isLoading) {
             this.subscription.remove()
           }
         }
