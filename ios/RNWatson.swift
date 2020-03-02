@@ -1,62 +1,60 @@
 //
 //  Created by Patrick cremin on 8/2/17.
 //
-
-import Foundation
 import SpeechToText
 import AVFoundation
-import RestKit
-
+import IBMSwiftSDKCore
 
 // SpeechToText
 @objc(RNSpeechToText)
 class RNSpeechToText: RCTEventEmitter {
 
   var accumulator = SpeechRecognitionResultsAccumulator()
-  var speechToText: SpeechToText?
-  var audioPlayer = AVAudioPlayer()
-  var callback: RCTResponseSenderBlock?
+  var speechToTextSession: SpeechToTextSession?
   var hasListeners = false
   var isListening = false;
 
   static let sharedInstance = RNSpeechToText()
 
-  private override init() {}
-
   override func supportedEvents() -> [String]! {
     return ["StreamingText"]
   }
 
-  @objc func initialize(_ apiKey: String) -> Void {
+  @objc func startStreaming(_ accessToken: String, config: [String: Any], errorCallback: @escaping RCTResponseSenderBlock) {
+
     do {
       let audioSession = AVAudioSession.sharedInstance();
 
       try audioSession.setCategory(AVAudioSession.Category.playAndRecord, mode: .default, options: [.defaultToSpeaker, .mixWithOthers, .allowBluetooth])
+      try audioSession.setActive(true)
     } catch {
       print(error)
     }
 
-    speechToText = SpeechToText(apiKey: apiKey)
-    speechToText?.defaultHeaders = ["X-Watson-Learning-Opt-Out": "true"]
-  }
-
-  @objc func startStreaming(_ config: [String: Any], errorCallback: @escaping RCTResponseSenderBlock) {
     self.isListening = true
     self.accumulator = SpeechRecognitionResultsAccumulator()
-    
-    var settings = RecognitionSettings(contentType: "audio/ogg")
-    settings.interimResults = true
-    settings.smartFormatting = true
+
     let languageCustomizationID = config["languageCustomizationId"] as? String
     let acousticCustomizationID = config["acousticCustomizationId"] as? String
 
-    var callback = RecognizeCallback()
+    let authenticator = BearerTokenAuthenticator(bearerToken: accessToken)
 
-    callback.onResults = { payload in
-      if(self.hasListeners)
-      {
+    speechToTextSession = SpeechToTextSession(
+      authenticator: authenticator,
+      languageCustomizationID: languageCustomizationID,
+      acousticCustomizationID: acousticCustomizationID,
+      learningOptOut: true
+    )
+
+    speechToTextSession?.onError = { error in
+      self.isListening = false
+      errorCallback([error])
+    }
+
+    speechToTextSession?.onResults = { payload in
+      if (self.hasListeners) {
         self.accumulator.add(results: payload)
-        let isFinal = payload.results?.last?.finalResults ?? true
+        let isFinal = payload.results?.last?.final ?? true
 
         self.sendEvent(withName: "StreamingText", body: [
           "isListening": self.isListening,
@@ -66,32 +64,27 @@ class RNSpeechToText: RCTEventEmitter {
       }
     }
 
-    callback.onError = { (error: Error) in
-      errorCallback([error])
-      self.isListening = false
-    }
+    var settings = RecognitionSettings(contentType: "audio/ogg;codecs=opus")
+    settings.interimResults = true
+    settings.smartFormatting = true
 
-    speechToText?.recognizeMicrophone(
-      settings: settings,
-      languageCustomizationID: languageCustomizationID,
-      acousticCustomizationID: acousticCustomizationID,
-      configureSession: false,
-      callback: callback
-    )
+    speechToTextSession?.connect()
+    speechToTextSession?.startRequest(settings: settings)
+    speechToTextSession?.startMicrophone()
   }
 
   @objc func stopStreaming() {
     self.isListening = false
-    speechToText?.stopRecognizeMicrophone()
+    speechToTextSession?.stopMicrophone()
+    speechToTextSession?.stopRequest()
+    speechToTextSession?.disconnect()
   }
 
-  override func startObserving()
-  {
+  override func startObserving() {
     hasListeners = true
   }
 
-  override func stopObserving()
-  {
+  override func stopObserving() {
     hasListeners = false
   }
 }

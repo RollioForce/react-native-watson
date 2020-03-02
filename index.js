@@ -6,11 +6,8 @@ module.exports = {
   SpeechToText: {
     speechToTextEmitter: new NativeEventEmitter(RNSpeechToText),
 
-    initialize: function(apiKey) {
-      RNSpeechToText.initialize(apiKey);
-    },
-
     startStreaming({
+      accessToken,
       acousticCustomizationId,
       callback,
       languageCustomizationId
@@ -29,7 +26,7 @@ module.exports = {
       );
 
       const onError = error => {
-        callback(error);
+        callback(error || 'Watson iOS SDK Error');
 
         if (this.subscription) {
           this.speechToTextEmitter.removeAllListeners("StreamingText");
@@ -37,6 +34,7 @@ module.exports = {
       };
 
       RNSpeechToText.startStreaming(
+        accessToken,
         {
           acousticCustomizationId,
           languageCustomizationId
