@@ -43,7 +43,8 @@ If your project does not yet have a Podfile, use the `pod init` command in the r
 use_frameworks!
 
 target 'MyApp' do
-    pod 'IBMWatsonSpeechToTextV1', '~> 2.2.0'
+  pod 'IBMWatsonRestKit', '~> 3.0.3'
+  pod 'IBMWatsonSpeechToTextV1', '~> 3.2.0'
 end
 ```
 
@@ -51,28 +52,7 @@ Run the `pod install` command, and open the generated `.xcworkspace` file. To up
 
 ## Service Instances
 
-Services are instantiated using the [IBM Cloud](https://www.ibm.com/cloud/).
-
-Follow these steps to create a service instance and obtain its credentials:
-
-1. Log in to IBM Cloud at [https://www.ibm.com/cloud/](https://www.ibm.com/cloud/).
-2. Create a service instance:
-    1. From the Dashboard, select "Use Services or APIs".
-    2. Select the service you want to use.
-    3. Click "Create".
-3. Copy your service credentials:
-    1. Click "Service Credentials" on the left side of the page.
-    2. Copy the service's `api_key`.
-
-You will need to provide these service credentials in your application. For example:
-
-```javascript
-TextToSpeech.initialize("api_key")
-```
-
-Note that service credentials are different from your IBM Cloud username and password.
-
-See [Getting Started](https://www.ibm.com/watson/developercloud/doc/common/index.html) for more information on getting started with the Watson Developer Cloud and IBM Cloud.
+Services are instantiated using an [IAM](https://www.ibm.com/security/identity-access-management) access token, see [here](https://cloud.ibm.com/docs/iam?topic=iam-iamtoken_from_apikey) for more information on generating an access token.
 
 ## Speech to Text
 
@@ -81,13 +61,11 @@ The IBM Watson Speech to Text service enables you to add speech transcription ca
 ```javascript
 import { SpeechToText } from '@rollioforce/react-native-watson';
 
-SpeechToText.initialize('API_KEY') 
-
-// will transcribe microphone audio
 SpeechToText.startStreaming({
-    callback: (error, text) => {
-        console.log(text)
-    }
+  accessToken: 'MY-IAM-TOKEN'
+  callback: (error, text) => {
+    console.log(text)
+  }
 })
 
 SpeechToText.stopStreaming()   
