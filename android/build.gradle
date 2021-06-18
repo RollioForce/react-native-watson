@@ -1,0 +1,44 @@
+allprojects {
+    repositories {
+        jcenter()
+    }
+}
+buildscript {
+    repositories {
+        jcenter()
+        google()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.1.4'
+    }
+}
+
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 28
+
+    defaultConfig {
+        minSdkVersion 19
+        targetSdkVersion 25
+        versionCode 1
+        versionName "1.0"
+    }
+    lintOptions {
+        abortOnError false
+    }
+}
+
+repositories {
+    mavenCentral()
+    google()
+}
+
+dependencies {
+    api 'com.facebook.react:react-native:+'
+    api 'com.ibm.watson.developer_cloud:android-sdk:0.6.0'
+    api ('com.ibm.watson:speech-to-text:9.2.0') {
+        exclude group: 'com.google.code.findbugs', module: 'annotations'
+    }
+}

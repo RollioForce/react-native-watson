@@ -4,7 +4,7 @@ This is a fork of [react-native-watson](https://github.com/pwcremin/react-native
 
 
 ## Overview
-React Native module (ios and ~~android~~) for using ~~select Watson services~~ Watson Speech-To-Text.  Access to Watson services is provided by wrapping the [Watson Developer Cloud](https://github.com/watson-developer-cloud/swift-sdk)
+React Native module (ios and android) for using Watson Speech-To-Text.  Access to Watson services is provided by wrapping the [Watson Developer Cloud](https://github.com/watson-developer-cloud/swift-sdk)
 
 ### Services
 
@@ -62,7 +62,7 @@ The IBM Watson Speech to Text service enables you to add speech transcription ca
 import { SpeechToText } from '@rollioforce/react-native-watson';
 
 SpeechToText.startStreaming({
-  accessToken: 'MY-IAM-TOKEN'
+  accessToken: 'MY-IAM-TOKEN',
   callback: (error, text) => {
     console.log(text)
   }
