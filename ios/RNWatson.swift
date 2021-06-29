@@ -9,7 +9,7 @@ import IBMSwiftSDKCore
 @objc(RNSpeechToText)
 class RNSpeechToText: RCTEventEmitter {
 
-  var accumulator = SpeechRecognitionResultsAccumulator()
+  var accumulator = "";
   var speechToTextSession: SpeechToTextSession?
   var hasListeners = false
   var isListening = false;
@@ -32,7 +32,7 @@ class RNSpeechToText: RCTEventEmitter {
     }
 
     self.isListening = true
-    self.accumulator = SpeechRecognitionResultsAccumulator()
+    self.accumulator = ""
 
     let languageCustomizationID = config["languageCustomizationId"] as? String
     let acousticCustomizationID = config["acousticCustomizationId"] as? String
@@ -53,14 +53,30 @@ class RNSpeechToText: RCTEventEmitter {
 
     speechToTextSession?.onResults = { payload in
       if (self.hasListeners) {
-        self.accumulator.add(results: payload)
         let isFinal = payload.results?.last?.final ?? true
+        let transcript = payload.results?.last?.alternatives.last?.transcript ?? ""
+        var newTranscript = self.accumulator + transcript;
+        
+        if(isFinal){
+            let range = NSRange(0..<newTranscript.utf16.count)
+            let isSpellingRegex = try! NSRegularExpression(pattern: "[A-Z]\\.\\s[A-Z]\\.\\s$")
+            let isSpelling = isSpellingRegex.firstMatch(in: newTranscript, options: [], range: range) != nil
+            
+            if(isSpelling) {
+                let lastDotRegex = try! NSRegularExpression(pattern: "(.*)\\.\\s$")
+                newTranscript = lastDotRegex.stringByReplacingMatches(in: newTranscript, options: [], range: range, withTemplate: "$1.. ")
+            }
+        }
 
         self.sendEvent(withName: "StreamingText", body: [
           "isListening": self.isListening,
           "isLoading": !isFinal,
-          "text": self.accumulator.bestTranscript
+          "text": newTranscript
         ])
+        
+        if(isFinal){
+            self.accumulator = newTranscript;
+        }
       }
     }
 

@@ -23,7 +23,10 @@ import com.ibm.watson.speech_to_text.v1.model.SpeechRecognitionResults;
 import com.ibm.watson.speech_to_text.v1.websocket.BaseRecognizeCallback;
 
 import java.io.InputStream;
-
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class RNReactNativeWatsonSpeechToTextModule extends ReactContextBaseJavaModule {
 
@@ -87,6 +90,7 @@ public class RNReactNativeWatsonSpeechToTextModule extends ReactContextBaseJavaM
 
         private ReactApplicationContext reactContext;
         private Callback errorCallback;
+        private String stringAccumulator = "";
 
         public MicrophoneRecognizeDelegate(ReactApplicationContext reactContext, Callback errorCallback) {
             this.reactContext = reactContext;
@@ -98,10 +102,24 @@ public class RNReactNativeWatsonSpeechToTextModule extends ReactContextBaseJavaM
             if (speechResults.getResults() != null && !speechResults.getResults().isEmpty()) {
                 String text = speechResults.getResults().get(0).getAlternatives().get(0).getTranscript();
                 boolean isFinal = speechResults.getResults().get(0).isXFinal();
+                String newTranscript = this.stringAccumulator + text;
+
+                if(isFinal) {
+                    Matcher isSpellingMatcher = Pattern.compile("[A-Z]\\.\\s[A-Z]\\.\\s$").matcher(newTranscript);
+                    if (isSpellingMatcher.find()) {
+                        Matcher lastDotMatcher = Pattern.compile("(.*)\\.\\s$").matcher(newTranscript); 
+                        newTranscript = lastDotMatcher.replaceAll("$1.. ");
+                    }
+                }
+
                 WritableMap body = Arguments.createMap();
-                body.putString("text", text);
+                body.putString("text", newTranscript);
                 body.putBoolean("isListening", isListening);
                 body.putBoolean("isLoading", !isFinal);
+
+                if(isFinal){
+                    this.stringAccumulator = newTranscript;
+                }
 
                 reactContext
                     .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)

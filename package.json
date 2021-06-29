@@ -1,6 +1,6 @@
 {
   "name": "@rollioforce/react-native-watson",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "React Native module for IBM Watson services",
   "license": "ISC",
   "main": "index.js",
@@ -36,6 +36,7 @@
     "Patrick Cremin",
     "Gabriel Perales",
     "Brad Adams",
-    "Juan Larranaga"
+    "Juan Larranaga",
+    "Franco Romera"
   ]
 }
