@@ -41,4 +41,7 @@ dependencies {
     api ('com.ibm.watson:speech-to-text:9.2.0') {
         exclude group: 'com.google.code.findbugs', module: 'annotations'
     }
+    api ('com.ibm.watson:text-to-speech:9.2.0') {
+        exclude group: 'com.google.code.findbugs', module: 'annotations'
+    }
 }

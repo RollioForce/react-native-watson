@@ -22,3 +22,12 @@ RCT_EXTERN_METHOD(stopStreaming)
 
 @end
 
+
+@interface RCT_EXTERN_MODULE(RNTextToSpeech, NSObject)
+
+RCT_EXTERN_METHOD(synthesize:(NSString *)text accessToken:(NSString *)accessToken voice:(NSString *)voice resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject )
+
+RCT_EXTERN_METHOD(getVoices)
+
+@end
+

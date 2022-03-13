@@ -1,28 +1,35 @@
 import { NativeEventEmitter, NativeModules } from "react-native";
 
-const { RNSpeechToText } = NativeModules;
+const { RNSpeechToText, RNTextToSpeech } = NativeModules;
 
 module.exports = {
+
+  TextToSpeech: {
+    synthesize: function ( text, accessToken,  voice )
+    {
+      return RNTextToSpeech.synthesize( text, accessToken, voice );
+    }
+  },
   SpeechToText: {
     speechToTextEmitter: new NativeEventEmitter(RNSpeechToText),
 
     startStreaming({
-      accessToken,
-      acousticCustomizationId,
-      callback,
-      languageCustomizationId
-    }) {
+                     accessToken,
+                     acousticCustomizationId,
+                     callback,
+                     languageCustomizationId
+                   }) {
       this.speechToTextEmitter.removeAllListeners("StreamingText");
 
       this.subscription = this.speechToTextEmitter.addListener(
-        "StreamingText",
-        ({ isListening, isLoading, text }) => {
-          callback(null, text, isLoading);
+          "StreamingText",
+          ({ isListening, isLoading, text }) => {
+            callback(null, text, isLoading);
 
-          if (this.subscription && !isListening && !isLoading) {
-            this.subscription.remove();
+            if (this.subscription && !isListening && !isLoading) {
+              this.subscription.remove();
+            }
           }
-        }
       );
 
       const onError = error => {
@@ -34,12 +41,12 @@ module.exports = {
       };
 
       RNSpeechToText.startStreaming(
-        accessToken,
-        {
-          acousticCustomizationId,
-          languageCustomizationId
-        },
-        onError
+          accessToken,
+          {
+            acousticCustomizationId,
+            languageCustomizationId
+          },
+          onError
       );
     },
 

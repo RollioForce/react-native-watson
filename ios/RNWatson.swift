@@ -1,9 +1,78 @@
-//
-//  Created by Patrick cremin on 8/2/17.
-//
 import SpeechToText
+import TextToSpeech
 import AVFoundation
 import IBMSwiftSDKCore
+
+// TextToSpeech
+@objc(RNTextToSpeech)
+class RNTextToSpeech: NSObject {
+
+  var textToSpeech: TextToSpeech?
+
+  static let sharedInstance = RNTextToSpeech()
+  private override init() {}
+
+
+  @objc func synthesize(_ text: String, accessToken: String, voice: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+
+    let authenticator = BearerTokenAuthenticator(bearerToken: accessToken)
+
+    textToSpeech = TextToSpeech(authenticator: authenticator)
+
+    textToSpeech?.serviceURL = "https://api.us-south.text-to-speech.watson.cloud.ibm.com/instances/bbfe8ac3-5b61-4d19-8047-462c995a02fd"
+
+    var synthesizeVoice = voice
+
+    var audioUrl = ""
+
+    if synthesizeVoice.isEmpty {
+      synthesizeVoice = "en-GB_KateV3Voice"
+    }
+
+
+    textToSpeech?.synthesize(text: text, accept: "audio/wav", voice: voice) { (response, error) in
+        if let error = error {
+            print(error)
+          reject("500","Failed to synthesize text", error)
+        }
+
+        guard let data = response?.result else {
+            print("Failed to synthesize text")
+          reject("500","Failed to synthesize text", nil)
+          return
+        }
+
+      let audioFile = URL(fileURLWithPath: NSTemporaryDirectory() + UUID().uuidString + ".wav")
+      do {
+        try data.write(to: audioFile, options: .completeFileProtectionUnlessOpen)
+        audioUrl = audioFile.absoluteString
+        resolve(audioUrl)
+      } catch {
+        reject("500","Failed to synthesize text", nil)
+      }
+
+    }
+  }
+
+  @objc func getVoices(accessToken: String) -> Void {
+
+    let authenticator = BearerTokenAuthenticator(bearerToken: accessToken)
+
+    textToSpeech = TextToSpeech(authenticator: authenticator)
+
+
+    textToSpeech?.listVoices() {
+      response, error in
+
+      guard let voices = response?.result else {
+        print(error?.localizedDescription ?? "unknown error")
+        return
+      }
+
+      print(voices)
+    }
+  }
+}
 
 // SpeechToText
 @objc(RNSpeechToText)
@@ -56,12 +125,12 @@ class RNSpeechToText: RCTEventEmitter {
         let isFinal = payload.results?.last?.final ?? true
         let transcript = payload.results?.last?.alternatives.last?.transcript ?? ""
         var newTranscript = self.accumulator + transcript;
-        
+
         if(isFinal){
             let range = NSRange(0..<newTranscript.utf16.count)
             let isSpellingRegex = try! NSRegularExpression(pattern: "[A-Z]\\.\\s[A-Z]\\.\\s$")
             let isSpelling = isSpellingRegex.firstMatch(in: newTranscript, options: [], range: range) != nil
-            
+
             if(isSpelling) {
                 let lastDotRegex = try! NSRegularExpression(pattern: "(.*)\\.\\s$")
                 newTranscript = lastDotRegex.stringByReplacingMatches(in: newTranscript, options: [], range: range, withTemplate: "$1.. ")
@@ -73,7 +142,7 @@ class RNSpeechToText: RCTEventEmitter {
           "isLoading": !isFinal,
           "text": newTranscript
         ])
-        
+
         if(isFinal){
             self.accumulator = newTranscript;
         }
