@@ -1,5 +1,7 @@
 package com.reactlibrary;
 
+import android.os.AsyncTask;
+
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -7,26 +9,20 @@ import com.facebook.react.bridge.ReactMethod;
 import com.ibm.cloud.sdk.core.security.BearerTokenAuthenticator;
 import com.ibm.cloud.sdk.core.security.Authenticator;
 
+import com.ibm.watson.developer_cloud.android.library.audio.StreamPlayer;
 import com.ibm.watson.text_to_speech.v1.TextToSpeech;
 import com.ibm.watson.text_to_speech.v1.model.SynthesizeOptions;
 import com.ibm.cloud.sdk.core.http.HttpMediaType;
 
 import java.io.InputStream;
 
-import com.ibm.watson.text_to_speech.v1.util.WaveUtils;
-
-import java.io.File;
-import java.io.*;
-import java.net.URLEncoder;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.util.UUID;
-
-
 public class RNReactNativeWatsonTextToSpeechModule extends ReactContextBaseJavaModule {
 
     private ReactApplicationContext reactContext;
     private TextToSpeech service;
+    StreamPlayer streamPlayer;
+    private StreamingTask mStreamingTask;
+
 
     public RNReactNativeWatsonTextToSpeechModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -38,27 +34,11 @@ public class RNReactNativeWatsonTextToSpeechModule extends ReactContextBaseJavaM
         return "RNTextToSpeech";
     }
 
-      private static void writeToFile(InputStream in, File file) {
-        try {
-          OutputStream out = new FileOutputStream(file);
-          byte[] buf = new byte[1024];
-          int len;
-          while ((len = in.read(buf)) > 0) {
-            out.write(buf, 0, len);
-          }
-          out.close();
-          in.close();
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-      }
-
     @ReactMethod
     public void synthesize(String text, String apiKey, String voice, Promise promise) {
         Authenticator authenticator = new BearerTokenAuthenticator(apiKey);
         service = new TextToSpeech(authenticator);
         service.setServiceUrl("https://api.us-south.text-to-speech.watson.cloud.ibm.com/instances/bbfe8ac3-5b61-4d19-8047-462c995a02fd");
-
 
         String voiceName = voice;
 
@@ -70,20 +50,51 @@ public class RNReactNativeWatsonTextToSpeechModule extends ReactContextBaseJavaM
                 new SynthesizeOptions.Builder()
                         .text(text)
                         .voice(voiceName)
-                        .accept(HttpMediaType.AUDIO_OGG_VORBIS)
+                        .accept(HttpMediaType.AUDIO_WAV)
                         .build();
 
-        try {
-            InputStream in = service.synthesize(synthesizeOptions).execute().getResult();
-            String fileName = "" + System.currentTimeMillis();
-            File outputDir = reactContext.getCacheDir();
-            File outputFile = File.createTempFile(fileName, ".ogg", outputDir);
-            writeToFile(in, outputFile);
 
-         promise.resolve(outputFile.getPath());
-        } catch (Exception e) {
-            promise.reject(e);
-            System.err.println(e);
+        if (mStreamingTask != null) {
+            mStreamingTask.cancel(true);
+            mStreamingTask = null;
+
+            if(streamPlayer != null){
+                streamPlayer.interrupt();
+            }
+        }
+
+        mStreamingTask = new StreamingTask(synthesizeOptions, promise);
+        mStreamingTask.execute();
+    }
+
+
+    private class StreamingTask extends AsyncTask<Void, Integer, Boolean> {
+        private SynthesizeOptions synthOptions;
+        private Promise streamingPromise;
+
+        public StreamingTask(SynthesizeOptions synthesizeOptions, Promise promise) {
+            this.synthOptions = synthesizeOptions;
+            streamingPromise = promise;
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... voids) {
+            try {
+                streamPlayer = new StreamPlayer();
+                InputStream audioTrack = service.synthesize(synthOptions).execute().getResult();
+
+                streamPlayer.playStream(audioTrack);
+                return true;
+            } catch (Exception e) {
+                System.err.println("Error: RNTextToSpeech doInBackground couldn't play stream!");
+                return false;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result) {
+            streamingPromise.resolve(result);
+            mStreamingTask = null;
         }
     }
 }
