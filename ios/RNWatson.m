@@ -1,10 +1,3 @@
-//
-//  RNTextToSpeech.m
-//  RNBluemixBoilerplate
-//
-//  Created by Patrick cremin on 8/2/17.
-//  Copyright © 2017 Facebook. All rights reserved.
-//
 
 #import <React/RCTBridgeModule.h>
 #import <React/RCTEventEmitter.h>
@@ -27,7 +20,7 @@ RCT_EXTERN_METHOD(stopStreaming)
 
 RCT_EXTERN_METHOD(synthesize:(NSString *)text accessToken:(NSString *)accessToken voice:(NSString *)voice resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject )
 
-RCT_EXTERN_METHOD(getVoices)
+RCT_EXTERN_METHOD(stopAudio)
 
 @end
 

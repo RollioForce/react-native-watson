@@ -10,6 +10,7 @@ class RNTextToSpeech: NSObject {
   var textToSpeech: TextToSpeech?
 
   static let sharedInstance = RNTextToSpeech()
+  var audioPlayer = AVAudioPlayer()
   private override init() {}
 
 
@@ -22,8 +23,6 @@ class RNTextToSpeech: NSObject {
     textToSpeech?.serviceURL = "https://api.us-south.text-to-speech.watson.cloud.ibm.com/instances/bbfe8ac3-5b61-4d19-8047-462c995a02fd"
 
     var synthesizeVoice = voice
-
-    var audioUrl = ""
 
     if synthesizeVoice.isEmpty {
       synthesizeVoice = "en-GB_KateV3Voice"
@@ -42,35 +41,15 @@ class RNTextToSpeech: NSObject {
           return
         }
 
-      let audioFile = URL(fileURLWithPath: NSTemporaryDirectory() + UUID().uuidString + ".wav")
-      do {
-        try data.write(to: audioFile, options: .completeFileProtectionUnlessOpen)
-        audioUrl = audioFile.absoluteString
-        resolve(audioUrl)
-      } catch {
-        reject("500","Failed to synthesize text", nil)
-      }
-
+      self.audioPlayer = try! AVAudioPlayer(data: data)
+      self.audioPlayer.prepareToPlay()
+      self.audioPlayer.play()
     }
   }
 
-  @objc func getVoices(accessToken: String) -> Void {
+  @objc func stopAudio() -> Void {
 
-    let authenticator = BearerTokenAuthenticator(bearerToken: accessToken)
-
-    textToSpeech = TextToSpeech(authenticator: authenticator)
-
-
-    textToSpeech?.listVoices() {
-      response, error in
-
-      guard let voices = response?.result else {
-        print(error?.localizedDescription ?? "unknown error")
-        return
-      }
-
-      print(voices)
-    }
+    self.audioPlayer.stop()
   }
 }
 
